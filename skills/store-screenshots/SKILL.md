@@ -83,6 +83,8 @@ Steps run in order and each waits (`wait`, default 1 to 2 s):
 | `{"open": "myapp://route"}` | deep link. Prefer this to taps: it works on every device and platform |
 | `{"tap": {"label": "Save"}}` | taps the element with that accessibility label (or `{"id": ...}`), exact then substring match |
 | `{"tap": {"at": [0.5, 0.9]}}` | taps at a fraction of the screen |
+| `{"tap": {...}, "until": {"label": "Details"}}` | taps again (up to 3 times) until that element appears; use it for taps on screens that are still settling |
+| `{"waitFor": {"label": "Done", "timeout": 20}}` | waits until an element is on screen, before taps on screens that load or animate |
 | `{"type": "pasta"}`, `{"key": "enter"}`, `{"key": "back"}` | text and keys |
 | `{"swipe": [0.5, 0.8, 0.5, 0.3]}` | swipe, fractions |
 | `{"launch": true}` | restart the app |
@@ -263,11 +265,11 @@ size without a matching frame gets one:
 ```bash
 # native Android captures, 1080x2400, into sim-android/
 $PY $S/make_frame.py --style android --screen 1080x2400 --device android-phone --captures android
-# then in set.json: "capture": {"sets": {"android": {"dir": "sim-android", "statusBarBand": [1, 70]}}}
+# then in set.json: "capture": {"sets": {"android": {"dir": "sim-android", "statusBarBand": [30, 105]}}}
 ```
 
 Styles: `ios`, `android`, `tablet`, `landscape`. `--canvas WxH` sets the store size for a new
-device id. Measure `statusBarBand` on a real capture: the rows of the status bar.
+device id. Measure `statusBarBand` on a real capture: the rows of the status bar plus some margin (a 1080x2400 Pixel emulator draws it in rows 49 to 85).
 
 Official bezels look more exact. Apple's are in Apple Design Resources (Product Bezels) and
 Google's in the Android Device Art Generator. Their licences allow use in your marketing but

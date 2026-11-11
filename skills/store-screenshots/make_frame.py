@@ -100,7 +100,7 @@ def draw_frame(style, sw, sh, color):
         d.rounded_rectangle(S(sx + (sw - iw) / 2, sy + top, sx + (sw + iw) / 2, sy + top + ih), radius=ih / 2 * SS,
                             fill=(0, 0, 0, 255))
     elif style == "android":
-        dia, cy = 0.036 * sw, 0.050 * sw
+        dia, cy = 0.034 * sw, 0.062 * sw
         camera_y = sy + cy
         d.ellipse(S(sx + sw / 2 - dia / 2, camera_y - dia / 2, sx + sw / 2 + dia / 2, camera_y + dia / 2), fill=(0, 0, 0, 255))
 

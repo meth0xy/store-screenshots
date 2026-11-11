@@ -100,7 +100,7 @@
     "mask": "generic-android-1206x2622.mask.png",
     "silhouette": "generic-android-1206x2622.silhouette.png",
     "source": "Generic android frame drawn by make_frame.py",
-    "cameraCenterY": 106.3,
+    "cameraCenterY": 120.8,
     "statusBar": "android",
     "layout": {
       "headlineTop": 0.052,

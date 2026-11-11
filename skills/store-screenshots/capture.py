@@ -138,7 +138,12 @@ class IOS:
             args = ["xcrun", "simctl", "create", self.name, dtype]
             if self.conf.get("runtime"):
                 args.append(self.conf["runtime"])
-            self._udid = sh(args).strip()
+            res = subprocess.run(args, capture_output=True, text=True)
+            if res.returncode != 0:
+                raise SystemExit(f"{self.key}: simctl create failed: {res.stderr.strip()}\n"
+                                 "Check `xcrun simctl list runtimes` and `xcrun simctl list devicetypes`; "
+                                 "drop \"runtime\" to let simctl pick the newest compatible one.")
+            self._udid = res.stdout.strip()
             print(f"{self.key}: created '{self.name}' ({dtype})")
         self.boot()
         app_path = self.app.get("app")
@@ -325,7 +330,15 @@ class Android:
             self.boot()
             return
         # Per-app language, Android 13+. The app must declare its locales (localeConfig) to honour it.
+        current = self.a("shell", "cmd", "locale", "get-app-locales", self.package, check=False)
+        if f"[{locale}]" in current:
+            return
         self.a("shell", "cmd", "locale", "set-app-locales", self.package, "--locales", locale)
+        # The system restarts a running app for the new language a moment later; stop it first so
+        # that restart cannot land on top of the launch that follows.
+        time.sleep(3)
+        self.a("shell", "am", "force-stop", self.package, check=False)
+        time.sleep(1)
 
     def prepare(self):
         demo = lambda *extra: self.a("shell", "am", "broadcast", "-a", "com.android.systemui.demo", *extra, check=False)
@@ -338,12 +351,17 @@ class Android:
         demo("-e", "command", "notifications", "-e", "visible", "false")
 
     def launch(self):
-        self.a("shell", "am", "force-stop", self.package, check=False)
         activity = self.app.get("activity")
         if activity:
-            self.a("shell", "am", "start", "-n", f"{self.package}/{activity}")
+            component = f"{self.package}/{activity}"
         else:
-            self.a("shell", "monkey", "-p", self.package, "-c", "android.intent.category.LAUNCHER", "1")
+            out = self.a("shell", "cmd", "package", "resolve-activity", "--brief",
+                         "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER", self.package)
+            component = out.strip().splitlines()[-1]
+            if "/" not in component:
+                raise SystemExit(f"{self.key}: no launcher activity for {self.package}; set app.android.activity")
+        # -S stops the app, clear-task drops activities other apps left on top of its task, -W waits for the first frame.
+        self.a("shell", "am", "start", "-W", "-S", "--activity-clear-task", "-n", component)
 
     def open(self, url):
         args = ["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", url]
@@ -405,29 +423,56 @@ def need_idb():
                          "Or replace the tap with a deep link.")
 
 
-def find_element(dev, match):
-    els = dev.elements()
+def match_element(els, match):
     for e in els:
         if ("label" in match and e["label"] == match["label"]) or ("id" in match and e["id"] == match["id"]):
             return e
     for e in els:
         if "label" in match and match["label"].lower() in e["label"].lower():
             return e
-    raise SystemExit(f"{dev.key}: no element matching {match}. See: capture.py PROJECT describe --device {dev.key}")
+    return None
+
+
+def find_element(dev, match, timeout=15):
+    """Polls until the element shows up: screens still animating or restarting after a language switch."""
+    deadline = time.time() + timeout
+    while True:
+        found = match_element(dev.elements(), match)
+        if found or time.time() > deadline:
+            break
+        time.sleep(1.5)
+    if not found:
+        raise SystemExit(f"{dev.key}: no element matching {match} after {timeout}s. "
+                         f"See: capture.py PROJECT describe --device {dev.key}")
+    return found
+
+
+def tap(dev, target):
+    if "at" in target:
+        w, h = dev.screen_points()
+        dev.tap_point(target["at"][0] * w, target["at"][1] * h)
+    else:
+        x, y, w, h = find_element(dev, target)["frame"]
+        dev.tap_point(x + w / 2, y + h / 2)
 
 
 def run_step(dev, step):
     if "open" in step:
         dev.open(step["open"])
     elif "tap" in step:
-        target = step["tap"]
-        if "at" in target:
-            w, h = dev.screen_points()
-            dev.tap_point(target["at"][0] * w, target["at"][1] * h)
-        else:
-            e = find_element(dev, target)
-            x, y, w, h = e["frame"]
-            dev.tap_point(x + w / 2, y + h / 2)
+        for attempt in range(3 if step.get("until") else 1):
+            tap(dev, step["tap"])
+            if not step.get("until"):
+                break
+            try:
+                find_element(dev, step["until"], timeout=6)
+                break
+            except SystemExit:
+                if attempt == 2:
+                    raise SystemExit(f"{dev.key}: tapped {step['tap']} three times, {step['until']} never appeared")
+                print(f"  tap on {step['tap']} had no effect, tapping again")
+    elif "waitFor" in step:
+        find_element(dev, step["waitFor"], step["waitFor"].get("timeout", 20))
     elif "type" in step:
         dev.type_text(step["type"])
     elif "key" in step:
