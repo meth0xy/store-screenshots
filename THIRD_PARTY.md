@@ -11,3 +11,9 @@ vendor's artwork.
 The demo app in `examples/demo/` (Fernly) is fictional. Its screens are HTML rendered by
 `examples/demo/app/make_captures.py`; the plant pictures are system emoji drawn by the
 browser at capture time.
+
+## claude-skill-aso-appstore-screenshots
+
+The benefit discovery workflow is based on
+https://github.com/adamlyttleapps/claude-skill-aso-appstore-screenshots by Adam Lyttle,
+MIT License.

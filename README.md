@@ -125,7 +125,10 @@ redistribution, so keep them out of public forks.
 
 ## Credits
 
-Built for and used in production by [Flyva](https://flyva.app). Archivo Black is by
+Started as a fork of Adam Lyttle's
+[claude-skill-aso-appstore-screenshots](https://github.com/adamlyttleapps/claude-skill-aso-appstore-screenshots)
+(MIT), then rewritten around a deterministic canvas instead of Nano Banana so the text stays
+exact in every language. Built for and used in production by [Flyva](https://flyva.app). Archivo Black is by
 Omnibus-Type (SIL OFL 1.1). See [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## License
