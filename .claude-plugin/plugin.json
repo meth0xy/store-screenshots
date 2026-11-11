@@ -2,7 +2,17 @@
   "name": "store-screenshots",
   "description": "End-to-end App Store and Google Play screenshots: capture from iOS simulators and Android emulators, compose on an HTML canvas, render every locale and device.",
   "version": "1.0.0",
-  "author": {"name": "meth0xy"},
+  "author": {
+    "name": "meth0xy"
+  },
   "license": "MIT",
-  "keywords": ["aso", "app-store", "google-play", "screenshots", "localization", "simulator"]
+  "keywords": [
+    "aso",
+    "app-store",
+    "google-play",
+    "screenshots",
+    "localization",
+    "simulator"
+  ],
+  "icon": ".claude-plugin/icon.png"
 }

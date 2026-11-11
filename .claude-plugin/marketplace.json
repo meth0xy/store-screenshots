@@ -1,6 +1,9 @@
 {
   "name": "store-screenshots",
-  "owner": {"name": "meth0xy"},
+  "owner": {
+    "name": "meth0xy"
+  },
+  "description": "App Store and Google Play screenshot sets from real simulator captures, rendered per locale and device.",
   "plugins": [
     {
       "name": "store-screenshots",
