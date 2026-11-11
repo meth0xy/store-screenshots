@@ -1,0 +1,11 @@
+{
+  "name": "store-screenshots",
+  "owner": {"name": "meth0xy"},
+  "plugins": [
+    {
+      "name": "store-screenshots",
+      "source": "./",
+      "description": "End-to-end App Store and Google Play screenshot sets from real simulator captures."
+    }
+  ]
+}

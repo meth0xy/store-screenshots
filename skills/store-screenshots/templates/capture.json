@@ -1,0 +1,118 @@
+{
+  "app": {
+    "ios": {
+      "bundleId": "com.example.myapp",
+      "app": "build/MyApp.app"
+    },
+    "android": {
+      "package": "com.example.myapp",
+      "apk": "build/app-release.apk"
+    }
+  },
+  "devices": {
+    "phone": {
+      "platform": "ios",
+      "name": "Capture iPhone",
+      "type": "iPhone 17 Pro",
+      "dir": "sim"
+    },
+    "tablet": {
+      "platform": "ios",
+      "name": "Capture iPad",
+      "type": "iPad Pro 13-inch (M5)",
+      "dir": "sim-tablet"
+    },
+    "duo": {
+      "platform": "ios",
+      "name": "Capture iPhone Duo",
+      "type": "iPhone Duo",
+      "dir": "sim-duo",
+      "displaySize": "2853x2007",
+      "locale": "relaunch"
+    },
+    "android": {
+      "platform": "android",
+      "avd": "Pixel_9_API_36",
+      "dir": "sim-android"
+    }
+  },
+  "locale": {
+    "ios": "reboot",
+    "android": "app"
+  },
+  "launch": {
+    "wait": 8
+  },
+  "screens": [
+    {
+      "id": "01-home",
+      "steps": [
+        {
+          "open": "myapp://home",
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "02-detail",
+      "steps": [
+        {
+          "open": "myapp://item/42",
+          "wait": 4
+        }
+      ],
+      "ready": {
+        "region": [
+          0.05,
+          0.3,
+          0.9,
+          0.4
+        ],
+        "minStd": 20,
+        "tries": 5,
+        "delay": 3
+      }
+    },
+    {
+      "id": "03-search",
+      "steps": [
+        {
+          "open": "myapp://search",
+          "wait": 3
+        },
+        {
+          "tap": {
+            "label": "Search"
+          }
+        },
+        {
+          "type": "pasta"
+        },
+        {
+          "key": "enter",
+          "wait": 3
+        }
+      ]
+    },
+    {
+      "id": "04-settings",
+      "steps": [
+        {
+          "tap": {
+            "at": [
+              0.875,
+              0.95
+            ]
+          },
+          "wait": 2
+        }
+      ],
+      "byDevice": {
+        "tablet": {
+          "copyFrom": "01-home",
+          "steps": []
+        }
+      }
+    }
+  ]
+}

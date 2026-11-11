@@ -1,0 +1,371 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; }
+  #canvas { position: relative; overflow: hidden; }
+  .bg, .stage, .props { position: absolute; inset: 0; }
+  .bg { background-size: cover; background-position: center; }
+  .stage { z-index: 3; }
+  .props.back { z-index: 2; }
+  .props.front { z-index: 6; }
+  .props img { position: absolute; }
+  .headline { position: absolute; left: 0; right: 0; text-align: center; z-index: 5; }
+  .verb, .desc { margin: 0 auto; text-transform: uppercase; }
+  .verb { white-space: nowrap; line-height: 0.95; }
+  .desc { line-height: 1.06; text-wrap: balance; overflow-wrap: normal; word-break: keep-all; }
+  .device3d, .device { position: absolute; transform-style: preserve-3d; }
+  .device { left: 0; top: 0; transform-origin: 0 0; }
+  .device > * { position: absolute; }
+  .screen-clip { overflow: hidden; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+  .screen-layer { position: absolute; transform-origin: 0 0; }
+  .screen-layer > * { position: absolute; }
+  .gloss { position: absolute; inset: 0; pointer-events: none; }
+  .crop { background-repeat: no-repeat; }
+  .callout { display: flex; align-items: center; white-space: nowrap; box-sizing: border-box; }
+  .callout svg { flex: none; }
+</style>
+</head>
+<body>
+<div id="canvas"></div>
+<script>
+const ICONS = {
+  tag: (size, color) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><path fill="${color}" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" fill-rule="evenodd" d="M3.5 3.5h7.4l9.6 9.6-7.4 7.4-9.6-9.6z M8 6.4a1.6 1.6 0 1 0 0.001 0z"/></svg>`,
+  sparkles: (size, color) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><path fill="${color}" d="M10 3l1.9 5.6L17.5 10.5l-5.6 1.9L10 18l-1.9-5.6L2.5 10.5l5.6-1.9z M18.5 2.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>`,
+};
+
+function el(tag, cls, style, parent) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (style) Object.assign(node.style, style);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+
+function px(v) { return `${v}px`; }
+
+async function loadFonts(fonts) {
+  await Promise.all(Object.entries(fonts).map(async ([family, url]) => {
+    const face = new FontFace(family, `url(${url})`);
+    await face.load();
+    document.fonts.add(face);
+  }));
+}
+
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`image failed to load: ${url}`));
+    img.src = url;
+  });
+}
+
+function iosStatusBar(sb, simW) {
+  const pt = simW / 402;
+  const right = simW - 37.7 * pt;
+  const bars = [4.33, 6.33, 9, 11.67].map((h, i) => {
+    const x = right - (75.6 - i * 5.33) * pt;
+    return `<rect x="${x}" y="${38.3 * pt - h * pt}" width="${3.33 * pt}" height="${h * pt}" rx="${0.9 * pt}"/>`;
+  }).join('');
+  const wx = right - 40.3 * pt, wy = 38.0 * pt;
+  const arc = (r) => `M${wx - r * 0.707} ${wy - r * 0.707} A${r} ${r} 0 0 1 ${wx + r * 0.707} ${wy - r * 0.707}`;
+  const wifi = `<g fill="none" stroke="${sb.color}" stroke-width="${2.15 * pt}" stroke-linecap="round">`
+    + `<path d="${arc(10.1 * pt)}"/><path d="${arc(6.5 * pt)}"/></g>`
+    + `<path d="M${wx} ${wy} L${wx - 2.0 * pt} ${wy - 2.0 * pt} A${2.83 * pt} ${2.83 * pt} 0 0 1 ${wx + 2.0 * pt} ${wy - 2.0 * pt} Z" stroke="${sb.color}" stroke-width="${1.4 * pt}" stroke-linejoin="round"/>`;
+  const bx = right - 24.6 * pt, by = 27.4 * pt, bw = 22.3 * pt, bh = 11.0 * pt;
+  const battery = `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${3.4 * pt}" fill="none" stroke="${sb.color}" stroke-opacity="0.38" stroke-width="${1 * pt}"/>`
+    + `<rect x="${bx + 1.8 * pt}" y="${by + 1.8 * pt}" width="${bw - 3.6 * pt}" height="${bh - 3.6 * pt}" rx="${1.9 * pt}"/>`
+    + `<path d="M${bx + bw + 1.1 * pt} ${by + 3.7 * pt} a${1.6 * pt} ${1.8 * pt} 0 0 1 0 ${3.6 * pt} z" fill-opacity="0.4"/>`;
+  return `<svg width="${simW}" height="${60 * pt}" viewBox="0 0 ${simW} ${60 * pt}" fill="${sb.color}">`
+    + `<text x="${73.7 * pt}" y="${38.4 * pt}" text-anchor="middle" font-family="-apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif" font-weight="600" font-size="${17.3 * pt}">${sb.time}</text>`
+    + bars + wifi + battery + `</svg>`;
+}
+
+function ipadStatusBar(sb, simW) {
+  const pt = simW / 1032;
+  const right = simW - 37.5 * pt;
+  const base = 20.5 * pt;
+  const wx = right - 34.5 * pt, wy = 20.2 * pt;
+  const arc = (r) => `M${wx - r * 0.707} ${wy - r * 0.707} A${r} ${r} 0 0 1 ${wx + r * 0.707} ${wy - r * 0.707}`;
+  const wifi = `<g fill="none" stroke="${sb.color}" stroke-width="${1.85 * pt}" stroke-linecap="round">`
+    + `<path d="${arc(8.7 * pt)}"/><path d="${arc(5.6 * pt)}"/></g>`
+    + `<path d="M${wx} ${wy} L${wx - 1.7 * pt} ${wy - 1.7 * pt} A${2.4 * pt} ${2.4 * pt} 0 0 1 ${wx + 1.7 * pt} ${wy - 1.7 * pt} Z" stroke="${sb.color}" stroke-width="${1.2 * pt}" stroke-linejoin="round"/>`;
+  const bx = right - 22.5 * pt, by = 11 * pt, bw = 21 * pt, bh = 10 * pt;
+  const battery = `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${3.1 * pt}" fill="none" stroke="${sb.color}" stroke-opacity="0.38" stroke-width="${1 * pt}"/>`
+    + `<rect x="${bx + 1.7 * pt}" y="${by + 1.7 * pt}" width="${bw - 3.4 * pt}" height="${bh - 3.4 * pt}" rx="${1.7 * pt}"/>`
+    + `<path d="M${bx + bw + 1 * pt} ${by + 3.3 * pt} a${1.5 * pt} ${1.7 * pt} 0 0 1 0 ${3.4 * pt} z" fill-opacity="0.4"/>`;
+  const font = `font-family="-apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif" font-size="${14 * pt}"`;
+  const date = sb.date ? `<tspan dx="${8 * pt}" font-weight="500">${sb.date}</tspan>` : '';
+  return `<svg width="${simW}" height="${30 * pt}" viewBox="0 0 ${simW} ${30 * pt}" fill="${sb.color}">`
+    + `<text x="${26 * pt}" y="${base}" ${font} font-weight="600">${sb.time}${date}</text>`
+    + wifi + battery + `</svg>`;
+}
+
+function androidStatusBar(sb, simW, centerY, unit) {
+  const u = simW / (unit || 402);
+  const size = 15 * u;
+  const icon = (d, x) => `<svg x="${x}" y="${centerY - size / 2}" width="${size}" height="${size}" viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+  const right = simW - 22 * u;
+  const battery = 'M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z';
+  const cell = 'M2 22h20V2z';
+  const wifi = 'M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z';
+  return `<svg width="${simW}" height="${centerY * 2}" viewBox="0 0 ${simW} ${centerY * 2}" fill="${sb.color}">`
+    + `<text x="${24 * u}" y="${centerY + 5 * u}" font-family="Roboto, 'Google Sans', 'Helvetica Neue', sans-serif" font-weight="500" font-size="${14 * u}">${sb.time}</text>`
+    + icon(wifi, right - size * 3.15) + icon(cell, right - size * 2.05) + icon(battery, right - size)
+    + `</svg>`;
+}
+
+function shadowCss(strength, scale) {
+  const a = strength;
+  return [
+    `0 ${2 * scale}px ${4 * scale}px rgba(0,0,0,${0.16 * a})`,
+    `0 ${12 * scale}px ${28 * scale}px rgba(0,0,0,${0.22 * a})`,
+    `0 ${36 * scale}px ${80 * scale}px rgba(0,0,0,${0.30 * a})`,
+  ].join(', ');
+}
+
+function fitSingleLine(node, maxW, hi, lo) {
+  for (let size = hi; size >= lo; size -= 2) {
+    node.style.fontSize = px(size);
+    if (node.scrollWidth <= maxW + 1) return size;
+  }
+  return lo;
+}
+
+function linesOf(node, size) {
+  const lh = parseFloat(getComputedStyle(node).lineHeight) || size * 1.06;
+  return Math.round(node.getBoundingClientRect().height / lh);
+}
+
+function fitLines(node, maxLines, hi, lo) {
+  for (let size = hi; size >= lo; size -= 2) {
+    node.style.fontSize = px(size);
+    if (node.scrollWidth <= node.clientWidth + 1 && linesOf(node, size) <= maxLines) return size;
+  }
+  return lo;
+}
+
+function buildHeadline(cfg, root) {
+  const { w, h } = cfg.canvas;
+  const L = cfg.layout, H = cfg.headline;
+  const pad = L.sidePad * w;
+  const box = el('div', 'headline', { top: px(L.headlineTop * h), padding: `0 ${pad}px` }, root);
+  if (cfg.dir) box.dir = cfg.dir;
+  const verb = el('div', 'verb', {
+    fontFamily: H.font, color: H.verbColor, textShadow: H.shadow, letterSpacing: H.verbTracking || '0',
+  }, box);
+  verb.textContent = cfg.text.verb;
+  const desc = el('div', 'desc', {
+    fontFamily: H.descFont || H.font, color: H.descColor, textShadow: H.shadow,
+    marginTop: px(L.headlineGap * h * (H.descGapScale || 1)), width: px(w - 2 * pad), letterSpacing: H.descTracking || '0',
+    wordSpacing: H.descWordSpacing || '0',
+  }, box);
+  desc.textContent = cfg.text.desc;
+  return { box, verb, desc, maxW: w - 2 * pad };
+}
+
+function placeDevice(cfg, stage) {
+  const { w, h } = cfg.canvas;
+  const D = cfg.device, L = cfg.layout;
+  const k = (L.deviceWidth * w) / D.frameSize[0];
+  const dw = D.frameSize[0] * k, dh = D.frameSize[1] * k;
+  const left = (w - dw) / 2 + (cfg.offset?.x || 0) * w;
+  const top = L.deviceTop * h + (cfg.offset?.y || 0) * h;
+  const t = cfg.tilt || {};
+  stage.style.perspective = px(L.perspective);
+  stage.style.perspectiveOrigin = `50% ${(L.deviceTop + 0.25) * 100}%`;
+  const d3 = el('div', 'device3d', {
+    left: px(left), top: px(top), width: px(dw), height: px(dh), transformOrigin: '50% 22%',
+    transform: `rotateX(${t.x || 0}deg) rotateY(${t.y || 0}deg) rotateZ(${t.z || 0}deg)`,
+  }, stage);
+  const dev = el('div', 'device', {
+    width: px(D.frameSize[0]), height: px(D.frameSize[1]), transform: `scale(${k})`,
+  }, d3);
+  return { dev, k, top };
+}
+
+function buildDevice(cfg, dev, k) {
+  const D = cfg.device, S = cfg.screen;
+  const [sx, sy, sw, sh] = D.screen;
+  const b = D.bleed || 0;
+  const s = sw / S.simW;
+  const toFrame = (x, y) => [sx + x * s, sy + y * s];
+  const tilted = !!(cfg.tilt && (cfg.tilt.x || cfg.tilt.y || cfg.tilt.z));
+
+  el('div', null, {
+    left: px(D.frameSize[0] * 0.06), top: px(D.frameSize[1] * 0.02),
+    width: px(D.frameSize[0] * 0.88), height: px(D.frameSize[1] * 0.96),
+    borderRadius: px(D.frameSize[0] * 0.15), background: `rgba(0,0,0,${0.55 * cfg.style.deviceShadow})`,
+    filter: `blur(${70}px)`, transform: `translate3d(${D.frameSize[0] * 0.04}px, ${D.frameSize[1] * 0.025}px, ${tilted ? -cfg.style.thickness - 40 : -1}px)`,
+  }, dev);
+
+  // A few small silhouette layers, not full-resolution frame copies: dozens of
+  // large textures in one 3D context exceed headless Chromium's tile budget and
+  // leave parts of the screen unpainted.
+  if (tilted && cfg.style.thickness > 0 && D.silhouetteUrl) {
+    const layers = cfg.style.sideLayers || 14;
+    for (let i = layers; i >= 1; i--) {
+      const depth = (cfg.style.thickness * i) / layers;
+      const img = el('img', null, {
+        left: '0', top: '0', width: px(D.frameSize[0]), height: px(D.frameSize[1]),
+        transform: `translateZ(${-depth}px)`, filter: `brightness(${1.25 - 0.55 * (i / layers)})`,
+      }, dev);
+      img.src = D.silhouetteUrl;
+    }
+  }
+
+  if (D.rim) {
+    const r = D.rim;
+    el('div', null, {
+      left: px(-r.width), top: px(-r.width), width: px(D.frameSize[0] + 2 * r.width), height: px(D.frameSize[1] + 2 * r.width),
+      borderRadius: px(r.radius + r.width), background: r.gradient, transform: 'translateZ(-0.5px)',
+    }, dev);
+  }
+
+  const clip = el('div', 'screen-clip', {
+    left: px(sx - b), top: px(sy - b), width: px(sw + 2 * b), height: px(sh + 2 * b),
+    background: S.edgeColor, webkitMaskImage: `url(${D.maskUrl})`, maskImage: `url(${D.maskUrl})`,
+    transform: 'translateZ(-0.25px)',
+  }, dev);
+  const layer = el('div', 'screen-layer', {
+    left: px(b), top: px(b), width: px(S.simW), height: px(S.simH), transform: `scale(${s})`,
+  }, clip);
+  const shot = el('img', null, { left: '0', top: '0', width: px(S.simW), height: px(S.simH) }, layer);
+  shot.src = S.simUrl;
+
+  for (const v of cfg.vacate) {
+    el('div', null, {
+      left: px(v.rect[0]), top: px(v.rect[1]), width: px(v.rect[2]), height: px(v.rect[3]),
+      background: v.color, borderRadius: px(v.radius ?? v.rect[3] / 2),
+    }, layer);
+  }
+
+  if (S.statusBar === 'ipados') {
+    const wrap = el('div', null, { left: '0', top: '0' }, layer);
+    wrap.innerHTML = ipadStatusBar(S.statusBarStyle, S.simW);
+  } else if (S.statusBar === 'ios') {
+    const wrap = el('div', null, { left: '0', top: '0' }, layer);
+    wrap.innerHTML = iosStatusBar(S.statusBarStyle, S.simW);
+  } else if (S.statusBar === 'android') {
+    const wrap = el('div', null, { left: '0', top: '0' }, layer);
+    const centerY = D.statusBarCenterY ?? (D.cameraCenterY - sy) / s;
+    wrap.innerHTML = androidStatusBar(S.statusBarStyle, S.simW, centerY, D.statusBarUnit);
+  }
+
+  if (cfg.style.gloss > 0) {
+    const g = cfg.style.gloss;
+    el('div', 'gloss', {
+      background: `linear-gradient(118deg, rgba(255,255,255,${g}) 0%, rgba(255,255,255,${g * 0.35}) 28%, rgba(255,255,255,0) 46%)`,
+    }, clip);
+  }
+
+  const frame = el('img', null, { left: '0', top: '0', width: px(D.frameSize[0]), height: px(D.frameSize[1]) }, dev);
+  frame.src = D.frameUrl;
+
+  const problems = [];
+  for (const [index, bo] of cfg.breakouts.entries()) {
+    const [ax, ay, aw, ah] = bo.rect;
+    const [fx, fy] = toFrame(ax, ay);
+    const lift = bo.lift ?? 80;
+    const dx = (bo.dx || 0) * s, dy = (bo.dy || 0) * s;
+    const shadow = shadowCss(bo.shadow ?? 1, 1 / k);
+    let node;
+    if (bo.type === 'crop') {
+      node = el('div', 'crop', {
+        left: px(fx), top: px(fy), width: px(aw * s), height: px(ah * s),
+        backgroundImage: `url(${S.simUrl})`, backgroundSize: `${S.simW * s}px ${S.simH * s}px`,
+        backgroundPosition: `${-ax * s}px ${-ay * s}px`, borderRadius: px((bo.radius ?? ah / 2) * s),
+        boxShadow: shadow, transformOrigin: bo.origin || 'center',
+      }, dev);
+    } else {
+      const st = bo.style;
+      node = el('div', 'callout', {
+        left: px(fx - st.padX * s), top: '0', padding: `${st.padY * s}px ${st.padX * s}px`,
+        gap: px((st.gap ?? 0.32 * st.size) * s), borderRadius: px((st.radius ?? 999) * s),
+        background: st.bg, color: st.fg, fontFamily: st.font, fontSize: px(st.size * s),
+        fontWeight: st.weight || 'normal', letterSpacing: st.tracking || '0', boxShadow: shadow,
+        transformOrigin: bo.origin || 'left center', lineHeight: '1',
+      }, dev);
+      if (cfg.dir) node.dir = cfg.dir;
+      node.innerHTML = (bo.icon ? ICONS[bo.icon](st.size * s * (st.iconScale ?? 1.0), st.iconColor || st.fg) : '') + `<span></span>`;
+      node.querySelector('span').textContent = bo.text;
+      node.style.top = px(fy + (ah * s) / 2 - node.offsetHeight / 2);
+    }
+    node.dataset.breakout = index;
+    node.style.transform = `translate3d(${dx}px, ${dy}px, ${lift}px) scale(${bo.scale ?? 1})`;
+    if (bo.type !== 'crop' && node.offsetWidth < aw * s) problems.push(`callout "${bo.text}" is narrower than the element it covers`);
+  }
+  return { problems, s };
+}
+
+function buildProps(cfg, root) {
+  const { w, h } = cfg.canvas;
+  const back = el('div', 'props back', null, root), front = el('div', 'props front', null, root);
+  for (const p of cfg.props) {
+    const img = el('img', null, {
+      left: px(p.x * w), top: px(p.y * h), width: px(p.w * w),
+      transform: `rotate(${p.rotate || 0}deg)`, filter: p.shadow ? `drop-shadow(0 ${0.01 * h}px ${0.02 * h}px rgba(0,0,0,0.35))` : 'none',
+    }, p.z === 'front' ? front : back);
+    img.src = p.url;
+  }
+}
+
+window.renderSlide = async function renderSlide(cfg) {
+  document.documentElement.lang = cfg.lang || '';
+  await loadFonts(cfg.fonts);
+  const urls = [cfg.device.frameUrl, cfg.device.maskUrl, cfg.screen.simUrl, ...cfg.props.map((p) => p.url)];
+  if (cfg.device.silhouetteUrl) urls.push(cfg.device.silhouetteUrl);
+  if (cfg.background.url) urls.push(cfg.background.url);
+  await Promise.all(urls.map(loadImage));
+
+  const { w, h } = cfg.canvas;
+  const root = document.getElementById('canvas');
+  root.innerHTML = '';
+  Object.assign(root.style, { width: px(w), height: px(h) });
+  const bg = el('div', 'bg', null, root);
+  bg.style.background = cfg.background.url
+    ? `url(${cfg.background.url}) ${cfg.background.position || 'center'} / cover no-repeat`
+    : cfg.background.css;
+
+  const hl = buildHeadline(cfg, root);
+  const L = cfg.layout;
+  if (cfg.mode === 'measure') {
+    const verb = fitSingleLine(hl.verb, hl.maxW, L.verbMax, L.verbMin);
+    const desc = fitLines(hl.desc, L.descLines, L.descMax, L.descMin);
+    hl.verb.style.fontSize = px(verb);
+    hl.desc.style.fontSize = px(desc);
+    const limit = L.deviceTop * h - L.minHeadlineDeviceGap * h;
+    let d = desc;
+    while (hl.box.getBoundingClientRect().bottom > limit && d > L.descMin) {
+      d -= 2;
+      hl.desc.style.fontSize = px(d);
+    }
+    return { verb, desc: d };
+  }
+
+  hl.verb.style.fontSize = px(cfg.sizes.verb);
+  hl.desc.style.fontSize = px(cfg.sizes.desc);
+  buildProps(cfg, root);
+  const stage = el('div', 'stage', null, root);
+  const { dev, k, top } = placeDevice(cfg, stage);
+  const { problems, s } = buildDevice(cfg, dev, k);
+
+  await Promise.all([...document.images].map((img) => img.decode().catch(() => {})));
+  await document.fonts.ready;
+
+  const hb = hl.box.getBoundingClientRect();
+  if (hl.verb.scrollWidth > hl.maxW + 1) problems.push('verb wider than the text column');
+  if (hl.desc.scrollWidth > hl.desc.clientWidth + 1) problems.push('a word in the subline is wider than the text column');
+  if (linesOf(hl.desc, cfg.sizes.desc) > L.descLines) problems.push(`subline needs more than ${L.descLines} lines`);
+  if (hb.bottom > top - L.minHeadlineDeviceGap * h + 1) problems.push('headline runs into the device');
+  for (const node of root.querySelectorAll('.callout, .crop')) {
+    const r = node.getBoundingClientRect();
+    if (r.left < 0 || r.right > w) problems.push('a breakout leaves the canvas');
+  }
+  return { problems, verbLines: linesOf(hl.verb, cfg.sizes.verb), descLines: linesOf(hl.desc, cfg.sizes.desc), k, s };
+};
+</script>
+</body>
+</html>

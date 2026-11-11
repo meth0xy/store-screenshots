@@ -1,0 +1,7 @@
+{
+  "slides": {
+    "01-water": {"verb": "Water", "desc": "Every plant right on time", "callouts": {"today": "3 plants today"}},
+    "02-care": {"verb": "Grow", "desc": "Care tips for every plant"},
+    "03-plan": {"verb": "Plan", "desc": "Your whole week at a glance"}
+  }
+}

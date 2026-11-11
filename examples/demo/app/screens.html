@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fernly demo screens</title>
+<style>
+  :root { --bg: #f6f4ee; --ink: #1d2a22; --muted: #6c776f; --green: #2f6b4f; --soft: #e3ece4; --card: #ffffff; --sun: #f2b35b; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Roboto, sans-serif; }
+  body, #root { width: 100vw; height: 100vh; overflow: hidden; }
+  .app { display: flex; height: 100%; }
+  .pane { flex: 1; padding: 64px 20px 0; position: relative; overflow: hidden; }
+  .tablet .pane { padding: 40px 28px 0; }
+  .tablet .pane + .pane { border-left: 1px solid #e4e1d8; background: #fbfaf6; }
+  h1 { font-size: 32px; letter-spacing: -0.02em; margin: 6px 0 4px; }
+  .hello { color: var(--muted); font-size: 15px; }
+  .banner { margin: 18px 0; background: var(--green); color: #fff; border-radius: 22px; padding: 18px; display: flex; gap: 14px; align-items: center; }
+  .banner .big { font-size: 40px; }
+  .banner b { display: block; font-size: 19px; }
+  .banner span { opacity: .85; font-size: 14px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); color: var(--green); font-weight: 600; font-size: 14px; border-radius: 99px; padding: 7px 12px; }
+  .row { display: flex; align-items: center; gap: 14px; background: var(--card); border-radius: 18px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .pot { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-size: 32px; background: var(--soft); }
+  .row .name { font-weight: 650; font-size: 16px; }
+  .row .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .row .go { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--green); display: grid; place-items: center; color: var(--green); font-size: 18px; }
+  .row.done .go { background: var(--green); color: #fff; border-color: var(--green); }
+  .section { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 10px; }
+  .hero { height: 300px; border-radius: 26px; background: radial-gradient(80% 90% at 50% 30%, #cfe3d2, #9fc5a8); display: grid; place-items: center; font-size: 150px; margin-top: 8px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+  .stat { background: var(--card); border-radius: 18px; padding: 14px 12px; }
+  .stat .ico { font-size: 22px; }
+  .stat b { display: block; font-size: 18px; margin-top: 6px; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .note { background: #fff6e6; border-radius: 18px; padding: 14px; font-size: 14px; line-height: 1.4; color: #6b4a12; }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 16px 0; }
+  .day { background: var(--card); border-radius: 14px; padding: 10px 0; text-align: center; font-size: 12px; color: var(--muted); }
+  .day b { display: block; color: var(--ink); font-size: 17px; margin: 2px 0 6px; }
+  .day.on { background: var(--green); color: #d6e8dc; }
+  .day.on b { color: #fff; }
+  .dots { display: flex; justify-content: center; gap: 3px; height: 6px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--sun); }
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: rgba(255,255,255,.92); border-top: 1px solid #e7e4dc; display: flex; justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+  .tabbar div { text-align: center; }
+  .tabbar svg { margin-bottom: 2px; }
+  .tabbar .on { color: var(--green); font-weight: 600; }
+  .tablet .tabbar { display: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const T = {
+  en: { hello: "Good morning, Mia", today: "Today", need: "3 plants need water", needSub: "About 5 minutes", chip: "3 plants today",
+        later: "Later this week", every: n => `Every ${n} days`, last: d => `Watered ${d}`, d2: "2 days ago", d6: "6 days ago", d1: "yesterday",
+        monstera: "Monstera", fern: "Boston fern", cactus: "Golden barrel", pothos: "Pothos", olive: "Olive tree",
+        care: "Care", water: "Water", light: "Light", hum: "Humidity", wEvery: "7 days", lVal: "Bright", hVal: "60 %",
+        tip: "Wipe the leaves once a month. Dust blocks light and slows new growth.", schedule: "Schedule", nov: "November",
+        days: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], tabs: ["Today","Plants","Schedule","Profile"], plants: "My plants" },
+  de: { hello: "Guten Morgen, Mia", today: "Heute", need: "3 Pflanzen brauchen Wasser", needSub: "Etwa 5 Minuten", chip: "3 Pflanzen heute",
+        later: "Später diese Woche", every: n => `Alle ${n} Tage`, last: d => `Gegossen ${d}`, d2: "vor 2 Tagen", d6: "vor 6 Tagen", d1: "gestern",
+        monstera: "Monstera", fern: "Schwertfarn", cactus: "Goldkugelkaktus", pothos: "Efeutute", olive: "Olivenbaum",
+        care: "Pflege", water: "Wasser", light: "Licht", hum: "Feuchte", wEvery: "7 Tage", lVal: "Hell", hVal: "60 %",
+        tip: "Wisch die Blätter einmal im Monat ab. Staub nimmt Licht und bremst neues Wachstum.", schedule: "Plan", nov: "November",
+        days: ["Mo","Di","Mi","Do","Fr","Sa","So"], tabs: ["Heute","Pflanzen","Plan","Profil"], plants: "Meine Pflanzen" },
+};
+const svg = (body, size, vb = 24) => `<svg width="${size}" height="${size}" viewBox="0 0 ${vb} ${vb}" fill="none" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+const ICON = {
+  drop: (s, c = "#3d8bd9") => svg(`<path d="M12 2.5c3.6 4.4 6.5 8 6.5 11.4A6.5 6.5 0 0 1 5.5 13.9C5.5 10.5 8.4 6.9 12 2.5z" fill="${c}"/><path d="M9 14.5a3 3 0 0 0 2.5 3" stroke="#fff" stroke-width="1.6" opacity=".7"/>`, s),
+  sun: (s) => svg(`<circle cx="12" cy="12" r="4.5" fill="#f2b35b"/>${[0,45,90,135,180,225,270,315].map(a => `<line x1="12" y1="2.8" x2="12" y2="5.2" stroke="#f2b35b" stroke-width="2" transform="rotate(${a} 12 12)"/>`).join("")}`, s),
+  wind: (s) => svg(`<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h8" stroke="#7aa3b8" stroke-width="2"/>`, s),
+  check: (s) => svg(`<path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="2.6"/>`, s),
+  spark: (s) => svg(`<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z" fill="currentColor"/>`, s),
+  home: (s, c) => svg(`<path d="M4 11l8-7 8 7v8.5a.5.5 0 0 1-.5.5H15v-6H9v6H4.5a.5.5 0 0 1-.5-.5z" stroke="${c}" stroke-width="1.8"/>`, s),
+  leaf: (s, c) => svg(`<path d="M5 19C5 10 10 5 19 5c0 9-5 14-14 14zM5 19l7-7" stroke="${c}" stroke-width="1.8"/>`, s),
+  cal: (s, c) => svg(`<rect x="4" y="5" width="16" height="15" rx="3" stroke="${c}" stroke-width="1.8"/><path d="M4 10h16M9 3v4M15 3v4" stroke="${c}" stroke-width="1.8"/>`, s),
+  user: (s, c) => svg(`<circle cx="12" cy="9" r="3.6" stroke="${c}" stroke-width="1.8"/><path d="M5 20c1.2-3.6 3.8-5 7-5s5.8 1.4 7 5" stroke="${c}" stroke-width="1.8"/>`, s),
+};
+const PLANT = {
+  monstera: "#3f8a5a", fern: "#5a9e48", pothos: "#7ab648", olive: "#8a9a5b",
+};
+const plant = (kind, s) => {
+  const pot = `<path d="M17 38h30l-3.5 20a3 3 0 0 1-3 2.5H23.5a3 3 0 0 1-3-2.5z" fill="#d9774a"/><rect x="15" y="34" width="34" height="6" rx="2" fill="#c4643b"/>`;
+  if (kind === "cactus") return svg(`<path d="M32 34V12a5 5 0 0 1 10 0v22M22 34v-8a4 4 0 0 1 8 0" fill="#4f9a63"/><rect x="27" y="8" width="10" height="27" rx="5" fill="#4f9a63"/><rect x="19" y="20" width="7" height="15" rx="3.5" fill="#5aab6f"/><rect x="38" y="16" width="7" height="12" rx="3.5" fill="#5aab6f"/>${pot}`, s, 64);
+  const c = PLANT[kind];
+  return svg(`<path d="M32 34C30 22 22 16 12 16c2 10 9 17 20 18z" fill="${c}"/><path d="M32 34c2-12 10-18 20-18-2 10-9 17-20 18z" fill="${c}" opacity=".85"/><path d="M32 34C29 20 31 10 32 4c3 8 4 18 0 30z" fill="${c}"/><path d="M32 34V12" stroke="#2c6141" stroke-width="1.2"/>${pot}`, s, 64);
+};
+const q = new URLSearchParams(location.search);
+const t = T[q.get("lang") || "en"];
+const layout = q.get("layout") || "phone";
+const screen = q.get("screen") || "today";
+
+const row = (pot, name, meta, done) => `<div class="row ${done ? "done" : ""}"><div class="pot">${pot}</div><div><div class="name">${name}</div><div class="meta">${meta}</div></div><div class="go">${done ? ICON.check(20) : ICON.drop(20)}</div></div>`;
+const tabbar = on => `<div class="tabbar">${t.tabs.map((x, i) => `<div class="${i === on ? "on" : ""}">${ICON[["home","leaf","cal","user"][i]](24, i === on ? "#2f6b4f" : "#8a948c")}<br>${x}</div>`).join("")}</div>`;
+
+const today = () => `
+  <div class="hello">${t.hello}</div><h1>${t.today}</h1>
+  <div class="banner"><div class="big">${ICON.drop(40, "#fff")}</div><div><b>${t.need}</b><span>${t.needSub}</span></div></div>
+  <div class="chip" data-rect="chip">${ICON.drop(15)} ${t.chip}</div>
+  <div class="section">${t.today}</div>
+  ${row(plant("monstera", 44), t.monstera, t.every(7), false)}${row(plant("fern", 44), t.fern, t.every(3), false)}${row(plant("pothos", 44), t.pothos, t.every(5), false)}
+  <div class="section">${t.later}</div>
+  ${row(plant("cactus", 44), t.cactus, t.every(21), true)}${row(plant("olive", 44), t.olive, t.every(10), true)}`;
+
+const detail = () => `
+  <div class="hello">${t.plants}</div><h1>${t.monstera}</h1>
+  <div class="hero">${plant("monstera", 220)}</div>
+  <div class="stats" data-rect="stats">
+    <div class="stat"><div class="ico">${ICON.drop(22)}</div><b>${t.wEvery}</b><span>${t.water}</span></div>
+    <div class="stat"><div class="ico">${ICON.sun(22)}</div><b>${t.lVal}</b><span>${t.light}</span></div>
+    <div class="stat"><div class="ico">${ICON.wind(22)}</div><b>${t.hVal}</b><span>${t.hum}</span></div>
+  </div>
+  <div class="section">${t.care}</div><div class="note">${t.tip}</div>`;
+
+const schedule = () => `
+  <div class="hello">${t.nov}</div><h1>${t.schedule}</h1>
+  <div class="week" data-rect="week">${t.days.map((d, i) => `<div class="day ${i === 2 ? "on" : ""}">${d}<b>${10 + i}</b><div class="dots">${"<i></i>".repeat([1,0,3,1,0,2,1][i])}</div></div>`).join("")}</div>
+  <div class="section">${t.days[2]} 12.</div>
+  ${row(plant("monstera", 44), t.monstera, t.last(t.d6), false)}${row(plant("fern", 44), t.fern, t.last(t.d2), false)}${row(plant("pothos", 44), t.pothos, t.last(t.d1), true)}`;
+
+const views = { today: [today, 0], detail: [detail, 1], schedule: [schedule, 2] };
+const root = document.getElementById("root");
+if (layout === "phone") {
+  const [fn, tab] = views[screen];
+  root.innerHTML = `<div class="app"><div class="pane">${fn()}${tabbar(tab)}</div></div>`;
+} else {
+  const right = screen === "schedule" ? today : detail;
+  const left = screen === "schedule" ? schedule : today;
+  document.body.classList.add("tablet");
+  root.innerHTML = `<div class="app"><div class="pane">${left()}</div><div class="pane">${right()}</div></div>`;
+}
+</script>
+</body>
+</html>

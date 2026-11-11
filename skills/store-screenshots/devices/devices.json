@@ -1,0 +1,198 @@
+{
+  "android-tablet": {
+    "label": "Android tablet",
+    "store": "Google Play tenInchScreenshots and sevenInchScreenshots",
+    "canvas": [
+      1792,
+      2400
+    ],
+    "frame": "android-tablet-generic.png",
+    "frameSize": [
+      1680,
+      2192
+    ],
+    "screen": [
+      73,
+      73,
+      1534,
+      2046
+    ],
+    "bleed": 3,
+    "mask": "android-tablet-generic.mask.png",
+    "silhouette": "android-tablet-generic.silhouette.png",
+    "captures": "tablet",
+    "statusBar": "android",
+    "statusBarCenterY": 34,
+    "statusBarUnit": 1032,
+    "source": "Generic graphite tablet frame, original drawing; 3:4 screen for iPad captures",
+    "layout": {
+      "headlineTop": 0.05,
+      "sidePad": 0.06,
+      "verbMax": 220,
+      "verbMin": 110,
+      "descMax": 96,
+      "descMin": 52,
+      "descLines": 2,
+      "headlineGap": 0.01,
+      "deviceTop": 0.27,
+      "deviceWidth": 0.84,
+      "minHeadlineDeviceGap": 0.018,
+      "perspective": 4200
+    }
+  },
+  "iphone-67": {
+    "label": "iPhone 6.9\"/6.7\"",
+    "store": "App Store Connect APP_IPHONE_67",
+    "canvas": [
+      1290,
+      2796
+    ],
+    "frame": "generic-ios-1206x2622.png",
+    "frameSize": [
+      1330,
+      2726
+    ],
+    "screen": [
+      62,
+      53,
+      1206,
+      2621
+    ],
+    "bleed": 3,
+    "mask": "generic-ios-1206x2622.mask.png",
+    "silhouette": "generic-ios-1206x2622.silhouette.png",
+    "source": "Generic ios frame drawn by make_frame.py",
+    "statusBar": "ios",
+    "layout": {
+      "headlineTop": 0.064,
+      "sidePad": 0.05,
+      "verbMax": 250,
+      "verbMin": 130,
+      "descMax": 110,
+      "descMin": 60,
+      "descLines": 2,
+      "headlineGap": 0.01,
+      "deviceTop": 0.31,
+      "deviceWidth": 0.86,
+      "minHeadlineDeviceGap": 0.018,
+      "perspective": 3400
+    }
+  },
+  "android-phone": {
+    "label": "Android phone",
+    "store": "Google Play phoneScreenshots",
+    "canvas": [
+      1080,
+      1920
+    ],
+    "frame": "generic-android-1206x2622.png",
+    "frameSize": [
+      1318,
+      2714
+    ],
+    "screen": [
+      56,
+      47,
+      1206,
+      2621
+    ],
+    "bleed": 3,
+    "mask": "generic-android-1206x2622.mask.png",
+    "silhouette": "generic-android-1206x2622.silhouette.png",
+    "source": "Generic android frame drawn by make_frame.py",
+    "cameraCenterY": 106.3,
+    "statusBar": "android",
+    "layout": {
+      "headlineTop": 0.052,
+      "sidePad": 0.06,
+      "verbMax": 210,
+      "verbMin": 110,
+      "descMax": 92,
+      "descMin": 50,
+      "descLines": 2,
+      "headlineGap": 0.01,
+      "deviceTop": 0.335,
+      "deviceWidth": 0.7,
+      "minHeadlineDeviceGap": 0.02,
+      "perspective": 2600
+    }
+  },
+  "ipad-13": {
+    "label": "iPad 13\"",
+    "store": "App Store Connect APP_IPAD_PRO_3GEN_129",
+    "canvas": [
+      2064,
+      2752
+    ],
+    "frame": "generic-tablet-2064x2752.png",
+    "frameSize": [
+      2246,
+      2934
+    ],
+    "screen": [
+      91,
+      92,
+      2064,
+      2751
+    ],
+    "bleed": 3,
+    "mask": "generic-tablet-2064x2752.mask.png",
+    "silhouette": "generic-tablet-2064x2752.silhouette.png",
+    "source": "Generic tablet frame drawn by make_frame.py",
+    "statusBar": "ipados",
+    "layout": {
+      "headlineTop": 0.05,
+      "sidePad": 0.06,
+      "verbMax": 230,
+      "verbMin": 110,
+      "descMax": 100,
+      "descMin": 56,
+      "descLines": 2,
+      "headlineGap": 0.01,
+      "deviceTop": 0.27,
+      "deviceWidth": 0.84,
+      "minHeadlineDeviceGap": 0.018,
+      "perspective": 4800
+    },
+    "captures": "tablet"
+  },
+  "iphone-duo": {
+    "label": "iPhone Duo inner display",
+    "store": "App Store Connect IPHONE_DUO",
+    "canvas": [
+      2853,
+      2007
+    ],
+    "frame": "generic-landscape-2853x2007.png",
+    "frameSize": [
+      2989,
+      2143
+    ],
+    "screen": [
+      68,
+      69,
+      2853,
+      2006
+    ],
+    "bleed": 3,
+    "mask": "generic-landscape-2853x2007.mask.png",
+    "silhouette": "generic-landscape-2853x2007.silhouette.png",
+    "source": "Generic landscape frame drawn by make_frame.py",
+    "statusBar": null,
+    "layout": {
+      "headlineTop": 0.045,
+      "sidePad": 0.06,
+      "verbMax": 200,
+      "verbMin": 100,
+      "descMax": 88,
+      "descMin": 50,
+      "descLines": 1,
+      "headlineGap": 0.008,
+      "deviceTop": 0.235,
+      "deviceWidth": 0.8,
+      "minHeadlineDeviceGap": 0.018,
+      "perspective": 6000
+    },
+    "captures": "duo"
+  }
+}

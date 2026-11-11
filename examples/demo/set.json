@@ -1,0 +1,82 @@
+{
+  "name": "Fernly (demo)",
+  "locales": ["en-US", "de-DE"],
+  "devices": ["iphone-67", "android-phone", "ipad-13", "android-tablet", "iphone-duo"],
+  "background": {
+    "css": "radial-gradient(90% 60% at 78% 62%, #f2b35b 0%, rgba(242,179,91,0) 70%), radial-gradient(70% 40% at 10% 100%, rgba(222,126,67,0.55) 0%, rgba(222,126,67,0) 70%), #1f4a37"
+  },
+  "headline": {
+    "verbColor": "#FFFFFF",
+    "descColor": "rgba(255,255,255,0.90)",
+    "shadow": "0 8px 30px rgba(0,0,0,0.30)"
+  },
+  "capture": {
+    "platform": "ios",
+    "statusBarBand": [66, 128],
+    "sets": {
+      "tablet": {"dir": "sim-tablet", "statusBarBand": [12, 56]},
+      "duo": {"dir": "sim-duo", "statusBarBand": null}
+    }
+  },
+  "style": {"gloss": 0.06, "deviceShadow": 1.0, "thicknessRatio": 0.085},
+  "statusBar": {"time": "9:41", "color": "#1d2a22"},
+  "slides": [
+    {
+      "id": "01-water",
+      "tilt": {"byDevice": {"duo": {"y": 8, "x": 3}, "default": {"y": 15, "x": 4, "z": -1.5}}},
+      "breakouts": [
+        {
+          "type": "callout",
+          "text": "today",
+          "icon": "sparkles",
+          "anchor": {"byDevice": {
+            "phone": {"byLocale": {"en-US": [60, 744, 417, 93], "de-DE": [60, 744, 468, 93]}},
+            "tablet": {"byLocale": {"en-US": [56, 448, 278, 62], "de-DE": [56, 448, 312, 62]}},
+            "duo": {"byLocale": {"en-US": [84, 672, 417, 93], "de-DE": [84, 672, 468, 93]}}
+          }},
+          "style": {"byDevice": {
+            "tablet": {"size": 32, "bg": "#2f6b4f", "fg": "#FFFFFF", "padX": 22, "padY": 14},
+            "default": {"size": 46, "bg": "#2f6b4f", "fg": "#FFFFFF", "padX": 32, "padY": 20}
+          }},
+          "scale": {"byDevice": {"tablet": 1.6, "default": 1.2}},
+          "lift": 110,
+          "dx": {"byDevice": {"phone": -110, "default": -40}},
+          "vacate": true
+        }
+      ]
+    },
+    {
+      "id": "02-care",
+      "breakouts": [
+        {
+          "type": "crop",
+          "rect": {"byDevice": {
+            "phone": [60, 1350, 1086, 309],
+            "tablet": [1089, 852, 919, 206],
+            "duo": [1512, 1278, 1257, 309]
+          }},
+          "radius": {"byDevice": {"tablet": 36, "default": 54}},
+          "scale": 1.12,
+          "lift": 120
+        }
+      ]
+    },
+    {
+      "id": "03-plan",
+      "tilt": {"byDevice": {"duo": {"y": -8, "x": 3}, "default": {"y": -15, "x": 5, "z": 1.5}}},
+      "breakouts": [
+        {
+          "type": "crop",
+          "rect": {"byDevice": {
+            "phone": [60, 426, 1086, 207],
+            "tablet": [56, 236, 919, 138],
+            "duo": [84, 354, 1257, 207]
+          }},
+          "radius": {"byDevice": {"tablet": 28, "default": 42}},
+          "scale": 1.1,
+          "lift": 120
+        }
+      ]
+    }
+  ]
+}
